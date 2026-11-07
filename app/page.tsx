@@ -21,6 +21,14 @@ const movies: Movie[] = [
   { title: "No Time to Die", year: "2021", rating: "7.3", genre: "Action", studio: "MGM", image: "photo-1519608487953-e999c86e7455" },
   { title: "The Creator", year: "2023", rating: "7.0", genre: "Sci-Fi", studio: "20th Century", image: "photo-1451187580459-43490279c0fa" },
   { title: "The Green Planet", year: "2022", rating: "8.9", genre: "Documentary", studio: "BBC", image: "photo-1448375240586-882707db888b" },
+  { title: "Stranger Things", year: "2016", rating: "8.7", genre: "Sci-Fi", studio: "Netflix", image: "photo-1519608487953-e999c86e7455" },
+  { title: "The Lion King", year: "2019", rating: "6.8", genre: "Adventure", studio: "Disney+", image: "photo-1470252649378-9c29740c9fa8" },
+  { title: "The Last of Us", year: "2023", rating: "8.7", genre: "Drama", studio: "MAX", image: "photo-1500530855697-b586d89ba3ee" },
+  { title: "Fallout", year: "2024", rating: "8.3", genre: "Sci-Fi", studio: "Prime Video", image: "photo-1519608487953-e999c86e7455" },
+  { title: "Top Gun: Maverick", year: "2022", rating: "8.2", genre: "Action", studio: "Paramount+", image: "photo-1464822759023-fed622ff2c3b" },
+  { title: "Black Panther", year: "2018", rating: "7.3", genre: "Action", studio: "Marvel", image: "photo-1534447677768-be436bb09401" },
+  { title: "Inside Out 2", year: "2024", rating: "7.6", genre: "Animation", studio: "Pixar", image: "photo-1500530855697-b586d89ba3ee" },
+  { title: "Jurassic World", year: "2015", rating: "6.9", genre: "Adventure", studio: "Universal", image: "photo-1470252649378-9c29740c9fa8" },
 ];
 
 const studios = [
@@ -65,12 +73,12 @@ export default function HomePage() {
 
   const filteredMovies = useMemo(() => movies.filter((movie) => {
     const matchesQuery = movie.title.toLowerCase().includes(query.toLowerCase());
-    const matchesStudio = selectedStudio === "All" || movie.studio.toLowerCase().includes(selectedStudio.toLowerCase());
+    const matchesStudio = selectedStudio === "All" || movie.studio.toLowerCase() === selectedStudio.toLowerCase();
     const matchesGenre = selectedGenre === "All" || movie.genre === selectedGenre;
     return matchesQuery && matchesStudio && matchesGenre;
   }), [query, selectedStudio, selectedGenre]);
 
-  const navItems = ["Home", "Movies", "TV Shows", "Anime", "Live TV", "Sports"];
+  const navItems = ["Home", "Movies", "TV Shows", "Anime", "Live TV", "Sports", "My List"];
   const toggleSaved = (title: string) => setSaved((current) => current.includes(title) ? current.filter((item) => item !== title) : [...current, title]);
 
   return (
@@ -78,7 +86,7 @@ export default function HomePage() {
       <header className="topbar">
         <a className="brand" href="#" aria-label="404bit home"><span>404</span>BIT<span className="brand-dot">.</span></a>
         <nav className={mobileMenu ? "main-nav open" : "main-nav"}>
-          {navItems.map((item) => <button key={item} className={activeNav === item ? "nav-link active" : "nav-link"} onClick={() => { setActiveNav(item); setMobileMenu(false); }}>{item}</button>)}
+          {navItems.map((item) => <button key={item} className={activeNav === item ? "nav-link active" : "nav-link"} onClick={() => { setActiveNav(item); setMobileMenu(false); if (item === "My List") { setSelectedStudio("All"); setSelectedGenre("All"); } else if (item === "Home" || item === "Movies") { setSelectedStudio("All"); setSelectedGenre("All"); } document.getElementById("catalog")?.scrollIntoView({ behavior: "smooth" }); }}>{item}</button>)}
         </nav>
         <div className="header-actions">
           {showSearch ? <div className="search-box"><Search size={16}/><input autoFocus placeholder="Search titles..." value={query} onChange={(e) => setQuery(e.target.value)}/><button onClick={() => {setShowSearch(false); setQuery("");}} aria-label="Close search"><X size={16}/></button></div> : <button className="icon-button" aria-label="Search" onClick={() => setShowSearch(true)}><Search/></button>}
@@ -112,7 +120,7 @@ export default function HomePage() {
           <p>One destination. Every universe.</p>
         </div>
         <div className="studio-grid">
-          {studios.map((studio) => <button key={studio.name} className={`studio-card ${studio.className}`} onClick={() => { setSelectedStudio(studio.name === "All" ? "All" : studio.name); document.getElementById("catalog")?.scrollIntoView({ behavior: "smooth" }); }}>
+          {studios.map((studio) => <button key={studio.name} className={`studio-card ${studio.className}`} onClick={() => { const studioFilters: Record<string, string> = { NETFLIX: "Netflix", "Disney+": "Disney+", MAX: "MAX", "prime video": "Prime Video", "paramount+": "Paramount+", MARVEL: "Marvel", PIXAR: "Pixar", UNIVERSAL: "Universal" }; setSelectedStudio(studioFilters[studio.name] ?? "All"); setActiveNav("Movies"); document.getElementById("catalog")?.scrollIntoView({ behavior: "smooth" }); }}>
             <span className="studio-name">{studio.name}</span><span className="studio-note">{studio.note}</span><span className="studio-arrow"><ChevronRight size={17}/></span>
           </button>)}
         </div>
@@ -128,7 +136,7 @@ export default function HomePage() {
         </div>
         <div className="poster-grid">
           {filteredMovies.map((movie, index) => <PosterCard key={movie.title} movie={movie} index={index}/>)}
-          {filteredMovies.length === 0 && <p className="empty-state">No titles found. Try another search.</p>}
+          {(activeNav === "My List" ? filteredMovies.filter((movie) => saved.includes(movie.title)) : filteredMovies).length === 0 && <p className="empty-state">{activeNav === "My List" ? "Your list is empty. Open a title and save it to keep it here." : "No titles found. Try another search or filter."}</p>}
         </div>
       </section>
 
