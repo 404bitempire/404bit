@@ -58,6 +58,7 @@ export default function HomePage() {
   const [query, setQuery] = useState("");
   const [showSearch, setShowSearch] = useState(false);
   const [selectedStudio, setSelectedStudio] = useState("All");
+  const [selectedGenre, setSelectedGenre] = useState("All");
   const [saved, setSaved] = useState<string[]>([]);
   const [infoMovie, setInfoMovie] = useState<Movie | null>(null);
   const [mobileMenu, setMobileMenu] = useState(false);
@@ -65,8 +66,9 @@ export default function HomePage() {
   const filteredMovies = useMemo(() => movies.filter((movie) => {
     const matchesQuery = movie.title.toLowerCase().includes(query.toLowerCase());
     const matchesStudio = selectedStudio === "All" || movie.studio.toLowerCase().includes(selectedStudio.toLowerCase());
-    return matchesQuery && matchesStudio;
-  }), [query, selectedStudio]);
+    const matchesGenre = selectedGenre === "All" || movie.genre === selectedGenre;
+    return matchesQuery && matchesStudio && matchesGenre;
+  }), [query, selectedStudio, selectedGenre]);
 
   const navItems = ["Home", "Movies", "TV Shows", "Anime", "Live TV", "Sports"];
   const toggleSaved = (title: string) => setSaved((current) => current.includes(title) ? current.filter((item) => item !== title) : [...current, title]);
@@ -119,10 +121,10 @@ export default function HomePage() {
       <section className="content-section" id="catalog">
         <div className="section-heading">
           <div><div className="section-kicker"><Flame size={13}/> WHAT EVERYONE IS WATCHING</div><h2>Trending <span>this week</span></h2></div>
-          <button className="text-link" onClick={() => {setSelectedStudio("All"); setQuery("");}}>View all <ChevronRight size={15}/></button>
+          <button className="text-link" onClick={() => {setSelectedStudio("All"); setSelectedGenre("All"); setQuery("");}}>View all <ChevronRight size={15}/></button>
         </div>
         <div className="filter-row">
-          {["All", "Action", "Sci-Fi", "Animation", "Documentary"].map((filter) => <button key={filter} className={selectedStudio === filter ? "filter-chip selected" : "filter-chip"} onClick={() => setSelectedStudio(filter)}>{filter}</button>)}
+          {["All", "Action", "Sci-Fi", "Animation", "Documentary"].map((filter) => <button key={filter} className={selectedGenre === filter ? "filter-chip selected" : "filter-chip"} onClick={() => setSelectedGenre(filter)}>{filter}</button>)}
         </div>
         <div className="poster-grid">
           {filteredMovies.map((movie, index) => <PosterCard key={movie.title} movie={movie} index={index}/>)}
